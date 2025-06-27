@@ -21,34 +21,31 @@ class JuicyAdventureApp:
 
     def create_widgets(self):
         self.text_box = tk.Text(self.root, height=1, width=117, bg="#E0E0E0")
-        self.text_box.place(x=10, y=10)
+        self.text_box.place(x=10+950, y=10)
         
         self.text_display = tk.Text(self.root, height=40, width=117, state='normal', cursor='hand2', bg="#E0E0E0")
-        self.text_display.place(x=10, y=90)
+        self.text_display.place(x=10+950, y=90)
         self.text_display.bind('<Button-1>', self.on_file_click)
         
         self.submit_button = tk.Button(self.root, text="Open Directory", command=self.process_text)
-        self.submit_button.place(x=11, y=35)
+        self.submit_button.place(x=11+950, y=35)
+
+        self.submit2_button = tk.Button(self.root, text="Open Directory2", command=self.process_text)
+        self.submit2_button.place(x=260+950, y=35)
         
         self.clear_button = tk.Button(self.root, text="Clear", command=self.clear_content)
-        self.clear_button.place(x=105, y=35)
+        self.clear_button.place(x=105+950, y=35)
         
         self.update_name_button = tk.Button(self.root, text="Update Name", command=self.update_name)
-        self.update_name_button.place (x=146, y=35)
+        self.update_name_button.place (x=146+950, y=35)
 
         self.current_name_box = tk.Text(self.root, height=1, width=117, state='normal', bg="#E0E0E0")
-        self.current_name_box.place (x=10, y=65)
-
-        self.previous_button = tk.Button(self.root, text ="Zoom In", command = self.zoom_in)
-        self.previous_button.place(x=820, y=35)
-
-        self.next_button = tk.Button(self.root, text ="Zoom Out", command = self.zoom_out)
-        self.next_button.place(x=880, y=35)
+        self.current_name_box.place (x=10+950, y=65)
 
         # Image display label - FIXED: Use Canvas instead of Label
         # Lower the canvas so it doesn't cover the buttons
-        self.canvas = tk.Canvas(self.root, bg="#6D6D6D", width=960, height=1080)
-        self.canvas.place(x=960, y=10)
+        self.canvas = tk.Canvas(self.root, bg="#6D6D6D", width=940, height=1080)
+        self.canvas.place(x=960-950, y=10)
         # Bind mouse wheel to zoom in/out when hovering over the canvas
         self.canvas.bind('<MouseWheel>', self.on_canvas_scroll)
         
@@ -178,20 +175,27 @@ class JuicyAdventureApp:
         event.widget.after(1, lambda: self.current_name_box.focus_set())
 
     def zoom_in(self):
-        self.zoom += 0.02
+        self.zoom += 0.04
         if self.current_pdf_path:
             self.display_pdf(self.current_pdf_path, self.current_page)
 
     def zoom_out(self):
-        self.zoom = max(0.02, self.zoom - 0.02)
+        self.zoom = max(0.04, self.zoom - 0.04)
         if self.current_pdf_path:
             self.display_pdf(self.current_pdf_path, self.current_page)
 
     def on_canvas_scroll(self, event):
-        if event.delta > 0:
-            self.previous_page()
-        elif event.delta < 0:
-            self.next_page()
+        # If Ctrl is held, zoom; otherwise, scroll pages
+        if (event.state & 0x0004):  # 0x0004 is the mask for Ctrl on Windows
+            if event.delta > 0:
+                self.zoom_in()
+            elif event.delta < 0:
+                self.zoom_out()
+        else:
+            if event.delta > 0:
+                self.previous_page()
+            elif event.delta < 0:
+                self.next_page()
 
     def display_pdf(self, pdf_path, page_number=0):
         try:
@@ -206,7 +210,11 @@ class JuicyAdventureApp:
             pil_image = Image.open(io.BytesIO(img_data))
             self.tk_image = ImageTk.PhotoImage(pil_image)
             self.canvas.delete("all")
-            self.canvas.create_image(10, 10, anchor=tk.NW, image=self.tk_image)
+            # Right-align the image
+            canvas_width = int(self.canvas['width'])
+            img_width = self.tk_image.width()
+            x_pos = canvas_width - img_width if canvas_width > img_width else 0
+            self.canvas.create_image(x_pos, 10, anchor=tk.NW, image=self.tk_image)
             pdf_document.close()
         except Exception as e:
             print(f"Failed to display PDF: {str(e)}")
