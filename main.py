@@ -30,6 +30,9 @@ class JuicyAdventureApp:
         self.clear_button = tk.Button(self.root, text="Clear", command=self.clear_content)
         self.clear_button.place(x=105, y=35)
         
+        self.update_name_button = tk.Button(self.root, text="Update Name", command=self.update_name)
+        self.update_name_button.place (x=146, y=35)
+
         self.current_name_box = tk.Text(self.root, height=1, width=117, state='normal')
         self.current_name_box.place (x=10, y=520)
 
@@ -39,6 +42,14 @@ class JuicyAdventureApp:
         
         # Prevent Enter from creating line breaks in text_box AND trigger submit
         self.text_box.bind('<Return>', lambda event: self.process_text() or "break")
+        self.current_name_box.bind('<Return>', lambda event: self.update_name() or "break")
+
+    def update_name(self):
+        # need to update file names
+        new_filename = self.current_name_box.get("1.0", tk.END).strip()
+        self.new_file = os.path.join(self.current_directory, new_filename)
+        os.rename(self.old_file, self.new_file)
+        self.process_text()
 
     def clear_content(self):
         self.text_box.delete('1.0', tk.END)
@@ -74,6 +85,7 @@ class JuicyAdventureApp:
             full_path = os.path.join(self.current_directory, filename)
             self.current_name_box.delete('1.0',tk.END)
             self.current_name_box.insert(tk.END, filename)
+            self.old_file = full_path  # Store the full path of the clicked file
             self.display_pdf(full_path)
 
     def display_pdf(self, pdf_path):  # FIXED: Added pdf_path parameter
@@ -94,7 +106,7 @@ class JuicyAdventureApp:
             
             # FIXED: Clear canvas and display image
             self.canvas.delete("all")
-            self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
+            self.canvas.create_image(10, 10, anchor=tk.NW, image=self.tk_image)
             
             pdf_document.close()
             
