@@ -4,7 +4,7 @@ import os
 import fitz  # PyMuPDF
 import io
 
-class JuicyAdventureApp:
+class File_Renamer:
     def __init__(self, root):
         self.root = root
         root.geometry("1920x1080")
@@ -29,15 +29,15 @@ class JuicyAdventureApp:
         
         self.submit_button = tk.Button(self.root, text="Open Directory", command=self.process_text)
         self.submit_button.place(x=11+950, y=35)
-
-        self.submit2_button = tk.Button(self.root, text="Open Directory2", command=self.process_text)
-        self.submit2_button.place(x=260+950, y=35)
         
         self.clear_button = tk.Button(self.root, text="Clear", command=self.clear_content)
         self.clear_button.place(x=105+950, y=35)
         
         self.update_name_button = tk.Button(self.root, text="Update Name", command=self.update_name)
         self.update_name_button.place (x=146+950, y=35)
+
+        self.format_button = tk.Button(self.root, text="Format", command=self.basic_format)
+        self.format_button.place (x=240+950, y=35)
 
         self.current_name_box = tk.Text(self.root, height=1, width=117, state='normal', bg="#E0E0E0")
         self.current_name_box.place (x=10+950, y=65)
@@ -53,6 +53,21 @@ class JuicyAdventureApp:
         self.text_box.bind('<Return>', lambda event: self.process_text() or "break")
         self.current_name_box.bind('<Return>', lambda event: self.update_name() or "break")
         # Bind left/right arrow keys to previous/next page
+    
+    def basic_format(self):
+        for filename in os.listdir(self.current_directory):
+            if filename.endswith(".pdf"):  # Look for extra ".pdf" in filenames
+                new_filename = filename.replace('-',' ').replace("Sect ","Section ").replace("  "," ").replace("_", " ").replace("TSF","Transaction Summary and Approval Form").replace("&", "and").replace("Transaction Approval Summary Form", "Transaction Summary and Approval Form")
+
+                old_filepath = os.path.join(self.current_directory, filename)
+                new_filepath = os.path.join(self.current_directory, new_filename)
+                
+                # Rename the file
+                os.rename(old_filepath, new_filepath)
+                print(f"Renamed: {filename} -> {new_filename}")
+
+        self.process_text()
+        print("Finished renaming files.")
 
     def next_page(self):
         if self.current_pdf_path and self.current_page < self.total_pages - 1:
@@ -121,16 +136,16 @@ class JuicyAdventureApp:
         self.text_box.delete('1.0', tk.END)
 
     def process_text(self):
-        user_input = self.text_box.get("1.0", tk.END).strip()
+        input_wait = self.text_box.get("1.0", tk.END).strip()
+        user_input = rf"C:\Users\LinH\OneDrive - BGIS\Documents - BGIS - Infrastructure Ontario Lease Document Portal\IO - Lease Admin Document Repository\{input_wait}"
         print(user_input)
         self.current_directory = user_input  # Store the directory path
         self.text_display.config(state='normal')
         self.text_display.delete('1.0', tk.END)
         try:
-            # Only update file_list if it's empty or directory changed
-            if not hasattr(self, 'file_list') or getattr(self, 'last_directory', None) != user_input:
-                self.file_list = os.listdir(user_input)
-                self.last_directory = user_input
+            # Always update file_list and last_directory
+            self.file_list = os.listdir(user_input)
+            self.last_directory = user_input
             self.display_name_map = {}
             for filename in self.file_list:
                 if filename.lower().endswith('.pdf'):
@@ -220,5 +235,5 @@ class JuicyAdventureApp:
             print(f"Failed to display PDF: {str(e)}")
 
 root = tk.Tk()
-JuicyAdventureApp(root)
+File_Renamer(root)
 root.mainloop()
